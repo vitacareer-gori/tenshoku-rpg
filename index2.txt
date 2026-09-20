@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>転職RPG 〜未来を切り拓く冒険の書〜</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* ボルドー・クラシックファンタジー基調のカラーパレット */
+      --bg-dark: #120508;
+      --panel-bg: rgba(28, 10, 15, 0.76);
+      --panel-border: rgba(220, 160, 130, 0.4);
+      --bordeaux-main: #671527;
+      --bordeaux-light: #8d2138;
+      --bordeaux-dark: #3a0a14;
+      --gold: #f5d08c;
+      --gold-bright: #ffe8b5;
+      --ruby-glow: rgba(230, 50, 85, 0.4);
+      --rose-accent: #ff758f;
+      --text-main: #faf0f2;
+      --text-muted: #d8c2c7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      color: var(--text-main);
+      background-color: var(--bg-dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Google Drive背景画像レイヤー (ボルドーのフィルターオーバーレイ + 風の揺らめき) */
+    .bg-universe {
+      position: fixed;
+      top: -5%;
+      left: -5%;
+      width: 110%;
+      height: 110%;
+      z-index: -3;
+      background-image: 
+        linear-gradient(rgba(26, 6, 12, 0.72), rgba(18, 5, 8, 0.84)),
+        url('https://lh3.googleusercontent.com/d/14szHAeARQLMROeZWY2orsA1DPjQVOExF=s2000'),
+        url('https://drive.google.com/uc?export=view&id=14szHAeARQLMROeZWY2orsA1DPjQVOExF');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(5px) brightness(0.85);
+      animation: windBreeze 24s ease-in-out infinite alternate;
+      transform-origin: center center;
+    }
+
+    @keyframes windBreeze {
+      0% {
+        transform: scale(1) translate(0, 0) rotate(0deg);
+      }
+      33% {
+        transform: scale(1.05) translate(-1.2%, -0.8%) rotate(0.4deg);
+      }
+      66% {
+        transform: scale(1.03) translate(1%, 0.5%) rotate(-0.3deg);
+      }
+      100% {
+        transform: scale(1.06) translate(-0.5%, -1.2%) rotate(0.2deg);
+      }
+    }
+
+    /* Canvas 風エフェクトレイヤー */
+    #windCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* ビネットオーバーレイ（ボルドー系の深み） */
+    .vignette-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(18, 4, 8, 0.85) 100%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* コンテナ */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+      position: relative;
+    }
+
+    /* ヘッダーエリア */
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+      position: relative;
+    }
+
+    .system-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .ctrl-btn {
+      background: rgba(58, 10, 20, 0.7);
+      border: 1px solid var(--panel-border);
+      color: var(--gold);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(141, 33, 56, 0.4);
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+
+    .title-badge {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 4px;
+      color: var(--rose-accent);
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      text-shadow: 0 0 10px var(--ruby-glow);
+    }
+
+    h1 {
+      font-family: 'Cinzel', 'Zen Kaku Gothic New', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 25px rgba(230, 50, 85, 0.6), 0 4px 10px rgba(0,0,0,0.9);
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .sub-text {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* 冒険者ステータス & 進行度パネル */
+    .status-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(141, 33, 56, 0.2);
+      margin-bottom: 40px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .player-tag {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rank-indicator {
+      font-family: 'Cinzel', serif;
+      background: rgba(141, 33, 56, 0.3);
+      border: 1px solid var(--rose-accent);
+      color: var(--gold-bright);
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    .progress-track {
+      background: rgba(10, 2, 4, 0.7);
+      height: 16px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #671527, #b82d49, #f5d08c);
+      box-shadow: 0 0 15px var(--ruby-glow);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* クエストリスト */
+    .quest-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .quest-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 20px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quest-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: var(--panel-border);
+      transition: all 0.3s ease;
+    }
+
+    .quest-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--gold);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(141, 33, 56, 0.4);
+    }
+
+    .quest-card:hover::before {
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+    }
+
+    .quest-card.completed {
+      border-color: rgba(245, 208, 140, 0.4);
+    }
+
+    .quest-card.completed::before {
+      background: var(--rose-accent);
+      box-shadow: 0 0 10px var(--ruby-glow);
+    }
+
+    /* ステージアイコン・番号 */
+    .quest-marker {
+      width: 64px;
+      height: 64px;
+      background: rgba(58, 10, 20, 0.85);
+      border: 2px solid var(--panel-border);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .quest-card:hover .quest-marker {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(245, 208, 140, 0.4);
+    }
+
+    .quest-card.completed .quest-marker {
+      border-color: var(--rose-accent);
+      background: rgba(141, 33, 56, 0.4);
+    }
+
+    .marker-stage {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    .marker-num {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+
+    /* クエスト内容 */
+    .quest-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .quest-header-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .quest-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .quest-badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+    }
+
+    .quest-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    /* クエストアクションボタン群 */
+    .quest-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 140px;
+    }
+
+    .btn-enter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--bordeaux-light), var(--bordeaux-dark));
+      border: 1px solid var(--panel-border);
+      color: var(--gold-bright);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .btn-enter:hover {
+      background: linear-gradient(135deg, #a82743, #4d0e1b);
+      border-color: var(--gold);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(230, 50, 85, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-check {
+      background: transparent;
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-check:hover {
+      border-color: var(--rose-accent);
+      color: var(--rose-accent);
+    }
+
+    .quest-card.completed .btn-check {
+      border-color: var(--rose-accent);
+      color: var(--gold-bright);
+      background: rgba(141, 33, 56, 0.35);
+      border-style: solid;
+    }
+
+    /* フッター */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+      .quest-card {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .quest-marker {
+        width: 48px;
+        height: 48px;
+      }
+      .marker-num {
+        font-size: 1.1rem;
+      }
+      .quest-actions {
+        flex-direction: row;
+        width: 100%;
+      }
+      .btn-enter, .btn-check {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景画像 & ビネット -->
+  <div class="bg-universe"></div>
+  <canvas id="windCanvas"></canvas>
+  <div class="vignette-overlay"></div>
+
+  <div class="container">
+    <header>
+      <div class="system-controls">
+        <button class="ctrl-btn" id="audioToggle" onclick="toggleAudio()">
+          <span id="audioIcon">🔊</span> 効果音: <span id="audioState">ON</span>
+        </button>
+        <button class="ctrl-btn" onclick="resetProgress()">
+          🔄 冒険の書リセット
+        </button>
+      </div>
+
+      <div class="title-badge">◆ JOB CHANGE QUEST MAP ◆</div>
+      <h1>転職RPG：冒険の回廊</h1>
+      <p class="sub-text">
+        風そよぐ神秘の森と選択の扉。それぞれのステージを巡り、あなたの真なるキャリアへの切符を手に入れよう。
+      </p>
+    </header>
+
+    <!-- 冒険の進捗パネル -->
+    <section class="status-panel">
+      <div class="panel-header">
+        <div class="player-tag">
+          <span>🛡️ 冒険者の進行度</span>
+          <span class="rank-indicator" id="rankBadge">RANK: 見習い冒険者</span>
+        </div>
+        <div style="color: var(--gold); font-weight: bold;" id="progressPercentage">0% 攻略完了</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="progress-info">
+        <span id="progressCount">達成クエスト: 0 / 7</span>
+        <span>解放された扉を巡り、新天地へ進め</span>
+      </div>
+    </section>
+
+    <!-- クエストリンク一覧 -->
+    <main class="quest-timeline" id="questList">
+
+      <!-- Stage 1 -->
+      <article class="quest-card" data-stage="1">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">01</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">自分を知る旅</h2>
+            <span class="quest-badge">自己分析フェーズ</span>
+          </div>
+          <p class="quest-desc">過去の冒険の軌跡を振り返り、自らのコアスキル、武器、そして隠された真の強みを再発見する旅路の始まり。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/n2de9a75e0bf1?prev_access_key=050d15e12e4b7e5ffd39a0d42137eb23" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest(1)">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+      <!-- Stage 2 -->
+      <article class="quest-card" data-stage="2">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">02</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">羅針盤の丘</h2>
+            <span class="quest-badge">軸・方針設定</span>
+          </div>
+          <p class="quest-desc">見晴らしのよい丘から地平線を見渡し、大切にしたい価値観とキャリアの方向性（コンパス）を定める。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/n93cff6f936d5?prev_access_key=c935da7de49d369f00f543a89cc3e9a7" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest(2)">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+      <!-- Stage 3 -->
+      <article class="quest-card" data-stage="3">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">03</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">情報の森と選択の扉</h2>
+            <span class="quest-badge">企業リサーチ & 選定</span>
+          </div>
+          <p class="quest-desc">無数に茂る情報の樹海で惑わされることなく、自分の羅針盤に合致する「真の扉」を見極める知恵を身につける。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/ne12761d8efa5?prev_access_key=73e67dfe877c3fab590647a5f0a55901" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest(3)">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+      <!-- Stage 4-1 -->
+      <article class="quest-card" data-stage="4-1">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">4-1</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">行動のダンジョン：応募フェーズ</h2>
+            <span class="quest-badge">書類選考・攻略</span>
+          </div>
+          <p class="quest-desc">自らの実績を記した巻物（職務経歴書・履歴書）を研ぎ澄まし、ダンジョンの重厚な第1関門を突破する。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/nbc3e5abc0484?prev_access_key=3ab1aac8c3eb9f75db74f62ab53f9823" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest('4-1')">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+      <!-- Stage 4-2 -->
+      <article class="quest-card" data-stage="4-2">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">4-2</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">行動のダンジョン：選考フェーズ</h2>
+            <span class="quest-badge">面接バトル</span>
+          </div>
+          <p class="quest-desc">試験官との対話バトル。言葉の刃ではなく、真摯な情熱とロジックを携えて数々の試練に挑む。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/n701b024c2fcf?prev_access_key=368bab9da817ebaf1b0f3148d865a4e1" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest('4-2')">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+      <!-- Stage 4-3 -->
+      <article class="quest-card" data-stage="4-3">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">4-3</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">行動のダンジョン：内定フェーズ</h2>
+            <span class="quest-badge">オファー承諾・交渉</span>
+          </div>
+          <p class="quest-desc">ダンジョン深層で手にした秘宝（内定通知）。条件の確認と覚悟を決め、真の目的地を選定する。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/nc2c60e0ce2ff?prev_access_key=c31cfd97a812fa576ee78697671d82bc" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest('4-3')">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+      <!-- Stage 4-4 -->
+      <article class="quest-card" data-stage="4-4">
+        <div class="quest-marker">
+          <span class="marker-stage">STAGE</span>
+          <span class="marker-num">4-4</span>
+        </div>
+        <div class="quest-content">
+          <div class="quest-header-line">
+            <h2 class="quest-title">行動のダンジョン：決別の儀式と新天地への門出</h2>
+            <span class="quest-badge">円満退職・新章突入</span>
+          </div>
+          <p class="quest-desc">旧き仲間への敬意と感謝を捧げて円満退職を果たし、新たなステージの扉を開いて歩み始める旅路の終焉と開幕。</p>
+        </div>
+        <div class="quest-actions">
+          <a href="https://note.com/preview/n73e1f3bc5880?prev_access_key=d137b68803623bdea645c085b6c19eb4" target="_blank" rel="noopener noreferrer" class="btn-enter" onclick="playSfx('enter')">
+            旅立つ <span>➔</span>
+          </a>
+          <button class="btn-check" onclick="toggleQuest('4-4')">
+            <span class="check-icon">⬜</span> 未踏破
+          </button>
+        </div>
+      </article>
+
+    </main>
+
+    <footer>
+      <p>転職RPG：各ステージ紹介 限定ポータル</p>
+    </footer>
+  </div>
+
+  <script>
+    // --- 音声生成 (Web Audio API: 外部ファイル不要) ---
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('audioState').textContent = audioEnabled ? 'ON' : 'OFF';
+      document.getElementById('audioIcon').textContent = audioEnabled ? '🔊' : '🔈';
+    }
+
+    function playSfx(type) {
+      if (!audioEnabled) return;
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'enter') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(740, now + 0.15);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'check') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.08);
+          osc.frequency.setValueAtTime(783.99, now + 0.16);
+          osc.frequency.setValueAtTime(1046.50, now + 0.24);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        }
+      } catch (e) {}
+    }
+
+    // --- 進捗管理 (localStorage) ---
+    const STORAGE_KEY = 'rpg_career_cleared_stages';
+    const totalStages = 7;
+
+    function getClearedStages() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveClearedStages(stages) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stages));
+      updateUI();
+    }
+
+    function toggleQuest(stageId) {
+      let stages = getClearedStages();
+      const sId = String(stageId);
+      if (stages.includes(sId)) {
+        stages = stages.filter(id => id !== sId);
+      } else {
+        stages.push(sId);
+        playSfx('check');
+      }
+      saveClearedStages(stages);
+    }
+
+    function resetProgress() {
+      if (confirm('すべての進行度をリセットしますか？')) {
+        localStorage.removeItem(STORAGE_KEY);
+        updateUI();
+      }
+    }
+
+    function updateUI() {
+      const stages = getClearedStages();
+      const count = stages.length;
+      const pct = Math.round((count / totalStages) * 100);
+
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('progressPercentage').textContent = pct + '% 攻略完了';
+      document.getElementById('progressCount').textContent = `達成クエスト: ${count} / ${totalStages}`;
+
+      let rank = '見習い冒険者';
+      if (pct === 100) rank = '伝説の英雄 (内定・新天地獲得)';
+      else if (pct >= 70) rank = '百戦錬磨の勇者';
+      else if (pct >= 40) rank = '中堅の旅人';
+      else if (pct > 0) rank = '志を持つ探求者';
+      document.getElementById('rankBadge').textContent = `RANK: ${rank}`;
+
+      document.querySelectorAll('.quest-card').forEach(card => {
+        const stage = card.getAttribute('data-stage');
+        const btn = card.querySelector('.btn-check');
+        if (stages.includes(stage)) {
+          card.classList.add('completed');
+          btn.innerHTML = '<span class="check-icon">✅</span> 踏破完了';
+        } else {
+          card.classList.remove('completed');
+          btn.innerHTML = '<span class="check-icon">⬜</span> 未踏破';
+        }
+      });
+    }
+
+    // --- 風・花びら・光の粒子アニメーション (Canvas) ---
+    const canvas = document.getElementById('windCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const particleCount = 45;
+    const particles = [];
+
+    class Particle {
+      constructor() {
+        this.reset(true);
+      }
+      reset(init = false) {
+        this.x = init ? Math.random() * width : -20;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 3.5 + 1.2;
+        this.vx = Math.random() * 2.5 + 1.2;
+        this.vy = (Math.random() - 0.3) * 0.8;
+        this.alpha = Math.random() * 0.6 + 0.2;
+        this.type = Math.random() > 0.4 ? 'petal' : 'spore'; // 花びら or 光
+        this.rot = Math.random() * 360;
+        this.vRot = (Math.random() - 0.5) * 2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rot += this.vRot;
+        if (this.x > width + 30 || this.y < -30 || this.y > height + 30) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate((this.rot * Math.PI) / 180);
+        ctx.globalAlpha = this.alpha;
+
+        if (this.type === 'petal') {
+          // ボルドー・ローズ系の花びら
+          ctx.fillStyle = '#b82d49';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, this.size * 2, this.size, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // 黄金・ルビーの光彩
+          ctx.fillStyle = '#f5d08c';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#e63255';
+          ctx.beginPath();
+          ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    const windLines = Array.from({ length: 6 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      len: Math.random() * 120 + 80,
+      speed: Math.random() * 4 + 3,
+      alpha: Math.random() * 0.15 + 0.05
+    }));
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.strokeStyle = 'rgba(255, 230, 235, 0.15)';
+      ctx.lineWidth = 1;
+      windLines.forEach(w => {
+        ctx.globalAlpha = w.alpha;
+        ctx.beginPath();
+        ctx.moveTo(w.x, w.y);
+        ctx.lineTo(w.x + w.len, w.y - w.len * 0.1);
+        ctx.stroke();
+        w.x += w.speed;
+        if (w.x > width + w.len) {
+          w.x = -w.len;
+          w.y = Math.random() * height;
+        }
+      });
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateUI();
+    });
+  </script>
+</body>
+</html>
